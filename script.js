@@ -268,21 +268,20 @@ function createTable() {
             const td = document.createElement("td");
             td.dataset.key = `${rowIndex}-${colIndex}`;
 
+            td.textContent = pairNames[rowIndex][colIndex];
+
             if (rowIndex === colIndex) {
-                td.textContent = pairNames[rowIndex][colIndex];
                 td.classList.add("diagonal");
-            } else {
-                td.textContent = pairNames[rowIndex][colIndex];
-
-                if (saveData[td.dataset.key]) {
-                    td.style.backgroundColor = saveData[td.dataset.key];
-                }
-
-                td.addEventListener("click", () => {
-                    currentTarget = { type: "cell", td };
-                    openModal(pairNames[rowIndex][colIndex]);
-                });
             }
+
+            if (saveData[td.dataset.key]) {
+                td.style.backgroundColor = saveData[td.dataset.key];
+            }
+
+            td.addEventListener("click", () => {
+                currentTarget = { type: "cell", td };
+                openModal(pairNames[rowIndex][colIndex]);
+            });
 
             tr.appendChild(td);
         });
@@ -426,14 +425,12 @@ function applySelection(color) {
     } else if (currentTarget.type === "row") {
         const rowIndex = currentTarget.index;
         members.forEach((_, colIndex) => {
-            if (colIndex === rowIndex) return;
             const td = table.querySelector(`td[data-key="${rowIndex}-${colIndex}"]`);
             setCellColor(td, color);
         });
     } else if (currentTarget.type === "col") {
         const colIndex = currentTarget.index;
         members.forEach((_, rowIndex) => {
-            if (rowIndex === colIndex) return;
             const td = table.querySelector(`td[data-key="${rowIndex}-${colIndex}"]`);
             setCellColor(td, color);
         });

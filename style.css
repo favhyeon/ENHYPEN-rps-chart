@@ -197,14 +197,10 @@ td {
     transition: .15s;
 }
 
-td:not(.diagonal):hover {
+td:hover {
     transform: scale(1.025);
     position: relative;
     z-index: 2;
-}
-
-td.diagonal {
-    cursor: default;
 }
 
 /* ===========================
