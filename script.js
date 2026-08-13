@@ -25,37 +25,44 @@ MEMBERS_BASE.forEach(m => { MEMBER_MAP[m.id] = m; });
 const HEESEUNG_KEY = "enhypen-include-heeseung";
 let includeHeeseung = localStorage.getItem(HEESEUNG_KEY) === "1";
 
+/* 본인조합명(대각선 칸의 씨피명) 표시 여부 - 체크박스로 켜고 끔
+   기본값은 켜짐(기존 동작과 동일)이라, 꺼본 적 없는 사용자는 "0"이 저장돼 있지 않다. */
+const SELF_PAIR_KEY = "enhypen-include-selfpair";
+let includeSelfPair = localStorage.getItem(SELF_PAIR_KEY) !== "0";
+
 function getActiveMembers() {
     return MEMBERS_BASE.filter(m => m.id !== HEESEUNG_ID || includeHeeseung);
 }
 
 /*
- * 6인(제이/제이크/성훈/선우/정원/니키) 사이의 커플명은 실제 취향표를 그대로 옮긴 값.
- * 희승이 포함된 조합은 희승의 rowInitial/colInitial("씅")을 상대방과 자동으로 조합해서 만든다.
+ * 씨피명(커플명) 목록
+ * ------------------------------------------------------------
+ * [행 멤버][열 멤버] 형태로 모든 조합의 이름을 그대로 적어둔 표.
+ * 희승이 포함된 조합(씅으로 시작/끝나는 것들)도 전부 여기 있으니,
+ * 씨피명을 고치고 싶을 땐 해당 행 -> 해당 열 자리의 문자열만 바꾸면 된다.
+ * (예: 제이×제이크 자리를 바꾸고 싶으면 jay 줄의 jake: "젱젴" 부분만 수정)
  */
-const CORE_PAIR_NAMES = {
-    jay:      { jay: "젱젱", jake: "젱젴", sunghoon: "젱성", sunoo: "젱선", jungwon: "젱양", niki: "젱닠" },
-    jake:     { jay: "젴젱", jake: "젴젴", sunghoon: "젴성", sunoo: "젴선", jungwon: "젴양", niki: "젴닠" },
-    sunghoon: { jay: "성젱", jake: "성젴", sunghoon: "훈훈", sunoo: "훈선", jungwon: "성양", niki: "성닠" },
-    sunoo:    { jay: "선젱", jake: "선젴", sunghoon: "선훈", sunoo: "썬썬", jungwon: "썬양", niki: "선닠" },
-    jungwon:  { jay: "양젱", jake: "양젴", sunghoon: "양훈", sunoo: "양썬", jungwon: "양양", niki: "양닠" },
-    niki:     { jay: "닠젱", jake: "닠젴", sunghoon: "닠성", sunoo: "닠선", jungwon: "닠양", niki: "닠닠" }
+const PAIR_NAMES = {
+    heeseung: { heeseung: "씅씅", jay: "씅젱", jake: "씅젴", sunghoon: "씅성", sunoo: "승썬", jungwon: "씅양", niki: "씅닠" },
+    jay:      { heeseung: "젱승", jay: "젱젱", jake: "젱젴", sunghoon: "젱성", sunoo: "젱선", jungwon: "젱양", niki: "젱닠" },
+    jake:     { heeseung: "젴승", jay: "젴젱", jake: "젴젴", sunghoon: "젴성", sunoo: "젴선", jungwon: "젴양", niki: "젴닠" },
+    sunghoon: { heeseung: "훈승", jay: "성젱", jake: "성젴", sunghoon: "훈훈", sunoo: "훈선", jungwon: "성양", niki: "성닠" },
+    sunoo:    { heeseung: "선승", jay: "선젱", jake: "선젴", sunghoon: "선훈", sunoo: "썬썬", jungwon: "썬양", niki: "선닠" },
+    jungwon:  { heeseung: "양씅", jay: "양젱", jake: "양젴", sunghoon: "양훈", sunoo: "양썬", jungwon: "양양", niki: "양닠" },
+    niki:     { heeseung: "닠승", jay: "닠젱", jake: "닠젴", sunghoon: "닠성", sunoo: "닠선", jungwon: "닠양", niki: "닠닠" }
 };
 
 function getPairName(rowId, colId) {
-    if (rowId !== HEESEUNG_ID && colId !== HEESEUNG_ID) {
-        return CORE_PAIR_NAMES[rowId][colId];
-    }
+    return PAIR_NAMES[rowId][colId];
+}
 
-    if (rowId === colId) {
-        return MEMBER_MAP[HEESEUNG_ID].rowInitial + MEMBER_MAP[HEESEUNG_ID].colInitial;
+/* 본인조합(대각선 칸: 제이×제이, 니키×니키 등)의 이름을 표시할지 여부에 따라
+   실제로 화면/이미지에 그릴 텍스트를 반환한다. 토글이 꺼져 있으면 "-"를 보여준다. */
+function getDisplayPairName(rowId, colId) {
+    if (rowId === colId && !includeSelfPair) {
+        return "-";
     }
-
-    if (rowId === HEESEUNG_ID) {
-        return MEMBER_MAP[HEESEUNG_ID].rowInitial + MEMBER_MAP[colId].colInitial;
-    }
-
-    return MEMBER_MAP[rowId].rowInitial + MEMBER_MAP[HEESEUNG_ID].colInitial;
+    return getPairName(rowId, colId);
 }
 
 const options = [
@@ -123,6 +130,7 @@ const dateToggle = document.getElementById("dateToggle");
 const dateTextRps = document.getElementById("dateTextRps");
 const dateTextLr = document.getElementById("dateTextLr");
 const heeseungToggle = document.getElementById("heeseungToggle");
+const selfPairToggle = document.getElementById("selfPairToggle");
 
 const undoBtn = document.getElementById("undoBtn");
 const redoBtn = document.getElementById("redoBtn");
@@ -234,6 +242,20 @@ if (heeseungToggle) {
     });
 }
 
+/* ==========================================
+   본인조합명 표시 토글
+========================================== */
+
+if (selfPairToggle) {
+    selfPairToggle.checked = includeSelfPair;
+
+    selfPairToggle.addEventListener("change", () => {
+        includeSelfPair = selfPairToggle.checked;
+        localStorage.setItem(SELF_PAIR_KEY, includeSelfPair ? "1" : "0");
+        createTable();
+    });
+}
+
 createTable();
 createLrGrid();
 updateNavButtons();
@@ -317,7 +339,7 @@ function createTable() {
             const key = `${rowMember.id}-${colMember.id}`;
             td.dataset.key = key;
 
-            td.textContent = getPairName(rowMember.id, colMember.id);
+            td.textContent = getDisplayPairName(rowMember.id, colMember.id);
 
             if (rowMember.id === colMember.id) {
                 td.classList.add("diagonal");
@@ -329,7 +351,7 @@ function createTable() {
 
             td.addEventListener("click", () => {
                 currentTarget = { type: "cell", td, rowId: rowMember.id, colId: colMember.id };
-                openModal(getPairName(rowMember.id, colMember.id));
+                openModal(getDisplayPairName(rowMember.id, colMember.id));
             });
 
             tr.appendChild(td);
