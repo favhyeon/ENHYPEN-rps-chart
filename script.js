@@ -43,13 +43,13 @@ function getActiveMembers() {
  * (예: 제이×제이크 자리를 바꾸고 싶으면 jay 줄의 jake: "젱젴" 부분만 수정)
  */
 const PAIR_NAMES = {
-    heeseung: { heeseung: "씅씅", jay: "씅젱", jake: "씅젴", sunghoon: "씅성", sunoo: "승썬", jungwon: "씅양", niki: "씅닠" },
-    jay:      { heeseung: "젱승", jay: "젱젱", jake: "젱젴", sunghoon: "젱성", sunoo: "젱선", jungwon: "젱양", niki: "젱닠" },
-    jake:     { heeseung: "젴승", jay: "젴젱", jake: "젴젴", sunghoon: "젴성", sunoo: "젴선", jungwon: "젴양", niki: "젴닠" },
-    sunghoon: { heeseung: "훈승", jay: "성젱", jake: "성젴", sunghoon: "훈훈", sunoo: "훈선", jungwon: "성양", niki: "성닠" },
-    sunoo:    { heeseung: "선승", jay: "선젱", jake: "선젴", sunghoon: "선훈", sunoo: "썬썬", jungwon: "썬양", niki: "선닠" },
+    heeseung: { heeseung: "씅씅", jay: "씅젱", jake: "씅젴", sunghoon: "씅성", sunoo: "씅선", jungwon: "씅양", niki: "씅닠" },
+    jay:      { heeseung: "젱씅", jay: "젱젱", jake: "젱젴", sunghoon: "젱성", sunoo: "젱선", jungwon: "젱양", niki: "젱닠" },
+    jake:     { heeseung: "젴씅", jay: "젴젱", jake: "젴젴", sunghoon: "젴성", sunoo: "젴선", jungwon: "젴양", niki: "젴닠" },
+    sunghoon: { heeseung: "성씅", jay: "성젱", jake: "성젴", sunghoon: "훈훈", sunoo: "훈선", jungwon: "성양", niki: "성닠" },
+    sunoo:    { heeseung: "선씅", jay: "선젱", jake: "선젴", sunghoon: "선훈", sunoo: "썬썬", jungwon: "썬양", niki: "선닠" },
     jungwon:  { heeseung: "양씅", jay: "양젱", jake: "양젴", sunghoon: "양훈", sunoo: "양썬", jungwon: "양양", niki: "양닠" },
-    niki:     { heeseung: "닠승", jay: "닠젱", jake: "닠젴", sunghoon: "닠성", sunoo: "닠선", jungwon: "닠양", niki: "닠닠" }
+    niki:     { heeseung: "닠씅", jay: "닠젱", jake: "닠젴", sunghoon: "닠성", sunoo: "닠선", jungwon: "닠양", niki: "닠닠" }
 };
 
 function getPairName(rowId, colId) {
@@ -150,7 +150,7 @@ const scaleWrap = document.getElementById("scaleWrap");
 /* CSS의 @media (max-width: 768px)과 동일한 기준.
    이 폭 이하에서는 JS로 축소하지 않고, 반응형 레이아웃을 그대로 사용한다. */
 const MOBILE_BREAKPOINT = 768;
-const DESKTOP_CAPTURE_WIDTH = 1600;
+const DESKTOP_CAPTURE_WIDTH = 1340;
 
 let currentTarget = null; // { type: "cell", td } | { type: "row", index } | { type: "col", index }
 let currentTab = "rps";
@@ -172,7 +172,7 @@ let lrData = JSON.parse(localStorage.getItem(LR_STORAGE_KEY)) || {
 const GUIDE_TEXT = {
     rps: [
         "셀을 선택하여 호감도를 표시해주세요.",
-        "멤버 이름을 누르면 줄 전체선택/숨기기가 가능해요."
+        "멤버 이름을 누르면 줄 전체선택이 가능해요."
     ],
     lr: [
         "L-R 사이 원하는 부분의 칸을 선택하고, 아래 칸에 자유롭게 적어보세요.",
@@ -809,7 +809,7 @@ saveBtn.addEventListener("click", async () => {
     area.classList.add("capturing");
 
     /* 화면(특히 모바일)에 적용돼 있던 축소/반응형 스타일을 잠시 걷어내고,
-       항상 PC 버전과 동일한 1600px 레이아웃으로 저장되도록 한다. */
+       항상 PC 버전과 동일한 1340px 레이아웃으로 저장되도록 한다. */
     const prevTransform = area.style.transform;
     area.style.transform = "none";
 
