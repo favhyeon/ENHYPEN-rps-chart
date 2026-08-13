@@ -92,10 +92,24 @@ const STORAGE_KEY = "enhypen-yeop-rps";
 const LR_STORAGE_KEY = "enhypen-lr-rps";
 const LR_CELL_COUNT = 12;
 
+/* 행/열 개별 숨기기 상태 (멤버 id 기준, rows/cols 따로 관리) */
+const HIDDEN_KEY = "enhypen-hidden-members";
+const hiddenSaved = JSON.parse(localStorage.getItem(HIDDEN_KEY)) || { rows: [], cols: [] };
+let hiddenRows = new Set(hiddenSaved.rows);
+let hiddenCols = new Set(hiddenSaved.cols);
+
+function saveHiddenState() {
+    localStorage.setItem(HIDDEN_KEY, JSON.stringify({
+        rows: [...hiddenRows],
+        cols: [...hiddenCols]
+    }));
+}
+
 const table = document.getElementById("chartTable");
 const modal = document.getElementById("modal");
 const modalTitle = document.getElementById("modalTitle");
 const optionGrid = document.getElementById("optionGrid");
+const modalExtra = document.getElementById("modalExtra");
 const closeModal = document.getElementById("closeModal");
 
 const saveBtn = document.getElementById("saveBtn");
@@ -261,13 +275,15 @@ function createTable() {
     table.innerHTML = "";
 
     const activeMembers = getActiveMembers();
+    const visibleCols = activeMembers.filter(m => !hiddenCols.has(m.id));
+    const visibleRows = activeMembers.filter(m => !hiddenRows.has(m.id));
 
     const head = document.createElement("tr");
     const empty = document.createElement("th");
     empty.className = "corner";
     head.appendChild(empty);
 
-    activeMembers.forEach(member => {
+    visibleCols.forEach(member => {
         const th = document.createElement("th");
         th.textContent = member.name;
         th.classList.add("clickable-header");
@@ -282,7 +298,7 @@ function createTable() {
 
     table.appendChild(head);
 
-    activeMembers.forEach(rowMember => {
+    visibleRows.forEach(rowMember => {
         const tr = document.createElement("tr");
 
         const rowHead = document.createElement("th");
@@ -296,7 +312,7 @@ function createTable() {
 
         tr.appendChild(rowHead);
 
-        activeMembers.forEach(colMember => {
+        visibleCols.forEach(colMember => {
             const td = document.createElement("td");
             const key = `${rowMember.id}-${colMember.id}`;
             td.dataset.key = key;
@@ -418,22 +434,59 @@ function openModal(titleText) {
     clearItem.addEventListener("click", () => applySelection(null));
     optionGrid.appendChild(clearItem);
 
-    modal.classList.remove("hidden");
+    renderModalExtra(titleText);
 
-    // 색상 전체 초기화 링크
-    let resetLink = document.getElementById("resetColorsLink");
-    if (!resetLink) {
-        resetLink = document.createElement("div");
-        resetLink.id = "resetColorsLink";
-        resetLink.className = "reset-colors-link";
-        resetLink.textContent = "색상 기본값으로 되돌리기";
-        resetLink.addEventListener("click", () => {
-            resetCustomColors();
-            renderLegend();
-            openModal(titleText);
-        });
-        optionGrid.insertAdjacentElement("afterend", resetLink);
+    modal.classList.remove("hidden");
+}
+
+/* 모달 하단(색상 기본값 되돌리기 + 행/열 숨기기 체크박스) 영역.
+   모달을 열 때마다 currentTarget 기준으로 다시 그린다. */
+function renderModalExtra(titleText) {
+    if (!modalExtra) return;
+    modalExtra.innerHTML = "";
+
+    const resetLink = document.createElement("div");
+    resetLink.className = "reset-colors-link";
+    resetLink.textContent = "색상 기본값으로 되돌리기";
+    resetLink.addEventListener("click", () => {
+        resetCustomColors();
+        renderLegend();
+        openModal(titleText);
+    });
+    modalExtra.appendChild(resetLink);
+
+    if (!currentTarget || (currentTarget.type !== "row" && currentTarget.type !== "col")) {
+        return;
     }
+
+    const member = MEMBER_MAP[currentTarget.id];
+    const isRow = currentTarget.type === "row";
+    const initial = isRow ? member.rowInitial : member.colInitial;
+    const suffix = isRow ? "왼" : "른";
+    const hiddenSet = isRow ? hiddenRows : hiddenCols;
+
+    const hideLabel = document.createElement("label");
+    hideLabel.className = "hide-toggle";
+
+    const hideInput = document.createElement("input");
+    hideInput.type = "checkbox";
+    hideInput.checked = hiddenSet.has(member.id);
+
+    hideInput.addEventListener("change", () => {
+        if (hideInput.checked) {
+            hiddenSet.add(member.id);
+        } else {
+            hiddenSet.delete(member.id);
+        }
+        saveHiddenState();
+        createTable();
+        modal.classList.add("hidden");
+    });
+
+    hideLabel.appendChild(hideInput);
+    hideLabel.appendChild(document.createTextNode(`${initial}${suffix} 숨기기`));
+
+    modalExtra.appendChild(hideLabel);
 }
 
 function setCellColor(td, key, color) {
@@ -671,7 +724,10 @@ resetBtn.addEventListener("click", () => {
 
     if (currentTab === "rps") {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(HIDDEN_KEY);
         saveData = {};
+        hiddenRows = new Set();
+        hiddenCols = new Set();
         historyStack = [];
         redoStack = [];
         updateNavButtons();

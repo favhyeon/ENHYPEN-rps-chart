@@ -454,6 +454,9 @@ button:hover {
 .date-toggle-wrap {
     display: flex;
     justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 22px;
     margin-top: 20px;
 }
 
@@ -642,6 +645,32 @@ button:hover {
 
 .reset-colors-link:hover {
     color: #880000;
+}
+
+.modal-extra {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.hide-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #666;
+    cursor: pointer;
+    user-select: none;
+}
+
+.hide-toggle input {
+    width: 16px;
+    height: 16px;
+    accent-color: #880000;
+    cursor: pointer;
 }
 
 .clear-card .option-dot {
