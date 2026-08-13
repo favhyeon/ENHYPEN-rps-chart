@@ -128,7 +128,8 @@ h1 {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    margin-bottom: 8px;
+    max-width: 1220px;
+    margin: 0 auto 8px;
 }
 
 .nav-btn {
