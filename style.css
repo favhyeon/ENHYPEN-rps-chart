@@ -244,7 +244,7 @@ td:hover {
 .lr-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(3, auto);
+    grid-template-rows: repeat(var(--lr-rows, 3), auto);
     grid-auto-flow: column;
     gap: 46px 50px;
 }

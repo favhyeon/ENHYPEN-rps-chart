@@ -2,47 +2,61 @@
    ENHYPEN 취향표
 ========================================== */
 
-const members = [
-    "제이",
-    "제이크",
-    "성훈",
-    "선우",
-    "정원",
-    "니키"
+/* 멤버 정보 (id / 이름 / 행-이니셜 / 열-이니셜 / 기본색 / 기본사진)
+   rowInitial: 이 멤버가 "행"일 때 커플명 앞에 오는 글자
+   colInitial: 이 멤버가 "열"일 때 커플명 뒤에 오는 글자
+   순서: 희승(옵션), 제이, 제이크, 성훈, 선우, 정원, 니키 */
+const HEESEUNG_ID = "heeseung";
+
+const MEMBERS_BASE = [
+    { id: HEESEUNG_ID, name: "희승",   rowInitial: "씅", colInitial: "씅", color: "#bfbfbf", photo: "assets/07_heeseung.png" },
+    { id: "jay",       name: "제이",   rowInitial: "젱", colInitial: "젱", color: "#c94b4b", photo: "assets/01_jay.png" },
+    { id: "jake",      name: "제이크", rowInitial: "젴", colInitial: "젴", color: "#a83232", photo: "assets/02_jake.png" },
+    { id: "sunghoon",  name: "성훈",   rowInitial: "성", colInitial: "성", color: "#8f2323", photo: "assets/03_sunghoon.png" },
+    { id: "sunoo",     name: "선우",   rowInitial: "선", colInitial: "선", color: "#b33939", photo: "assets/04_sunoo.png" },
+    { id: "jungwon",   name: "정원",   rowInitial: "양", colInitial: "양", color: "#992222", photo: "assets/05_jungwon.png" },
+    { id: "niki",      name: "니키",   rowInitial: "닠", colInitial: "닠", color: "#d9534f", photo: "assets/06_niki.png" }
 ];
 
-/* 멤버별 기본 아바타 색상 (사진 로드 실패 시 대체용) */
-const memberColors = [
-    "#c94b4b",
-    "#a83232",
-    "#8f2323",
-    "#b33939",
-    "#992222",
-    "#d9534f"
-];
+const MEMBER_MAP = {};
+MEMBERS_BASE.forEach(m => { MEMBER_MAP[m.id] = m; });
 
-/* 멤버별 기본 프로필 사진 (members 배열과 순서 동일) */
-const defaultPhotos = [
-    "assets/01_jay.png",
-    "assets/02_jake.png",
-    "assets/03_sunghoon.png",
-    "assets/04_sunoo.png",
-    "assets/05_jungwon.png",
-    "assets/06_niki.png"
-];
+/* 희승(활동 중단 멤버) 포함 여부 - 체크박스로 켜고 끔 */
+const HEESEUNG_KEY = "enhypen-include-heeseung";
+let includeHeeseung = localStorage.getItem(HEESEUNG_KEY) === "1";
+
+function getActiveMembers() {
+    return MEMBERS_BASE.filter(m => m.id !== HEESEUNG_ID || includeHeeseung);
+}
 
 /*
- * 표에 표시할 커플명. [행 멤버][열 멤버] 순서.
- * 멤버 순서: 제이, 제이크, 성훈, 선우, 정원, 니키
+ * 6인(제이/제이크/성훈/선우/정원/니키) 사이의 커플명은 실제 취향표를 그대로 옮긴 값.
+ * 희승이 포함된 조합은 희승의 rowInitial/colInitial("씅")을 상대방과 자동으로 조합해서 만든다.
  */
-const pairNames = [
-    ["젱젱", "젱젴", "젱성", "젱선", "젱양", "젱닠"],
-    ["젴젱", "젴젴", "젴성", "젴선", "젴양", "젴닠"],
-    ["성젱", "성젴", "훈훈", "훈선", "성양", "성닠"],
-    ["선젱", "선젴", "선훈", "썬썬", "썬양", "선닠"],
-    ["양젱", "양젴", "양훈", "양썬", "양양", "양닠"],
-    ["닠젱", "닠젴", "닠성", "닠선", "닠양", "닠닠"]
-];
+const CORE_PAIR_NAMES = {
+    jay:      { jay: "젱젱", jake: "젱젴", sunghoon: "젱성", sunoo: "젱선", jungwon: "젱양", niki: "젱닠" },
+    jake:     { jay: "젴젱", jake: "젴젴", sunghoon: "젴성", sunoo: "젴선", jungwon: "젴양", niki: "젴닠" },
+    sunghoon: { jay: "성젱", jake: "성젴", sunghoon: "훈훈", sunoo: "훈선", jungwon: "성양", niki: "성닠" },
+    sunoo:    { jay: "선젱", jake: "선젴", sunghoon: "선훈", sunoo: "썬썬", jungwon: "썬양", niki: "선닠" },
+    jungwon:  { jay: "양젱", jake: "양젴", sunghoon: "양훈", sunoo: "양썬", jungwon: "양양", niki: "양닠" },
+    niki:     { jay: "닠젱", jake: "닠젴", sunghoon: "닠성", sunoo: "닠선", jungwon: "닠양", niki: "닠닠" }
+};
+
+function getPairName(rowId, colId) {
+    if (rowId !== HEESEUNG_ID && colId !== HEESEUNG_ID) {
+        return CORE_PAIR_NAMES[rowId][colId];
+    }
+
+    if (rowId === colId) {
+        return MEMBER_MAP[HEESEUNG_ID].rowInitial + MEMBER_MAP[HEESEUNG_ID].colInitial;
+    }
+
+    if (rowId === HEESEUNG_ID) {
+        return MEMBER_MAP[HEESEUNG_ID].rowInitial + MEMBER_MAP[colId].colInitial;
+    }
+
+    return MEMBER_MAP[rowId].rowInitial + MEMBER_MAP[HEESEUNG_ID].colInitial;
+}
 
 const options = [
     { name: "OTP",      color: "#fc5090" },
@@ -94,6 +108,7 @@ const dateToggleWrap = document.getElementById("dateToggleWrap");
 const dateToggle = document.getElementById("dateToggle");
 const dateTextRps = document.getElementById("dateTextRps");
 const dateTextLr = document.getElementById("dateTextLr");
+const heeseungToggle = document.getElementById("heeseungToggle");
 
 const undoBtn = document.getElementById("undoBtn");
 const redoBtn = document.getElementById("redoBtn");
@@ -190,6 +205,21 @@ function updateDateDisplay() {
 
 dateToggle.addEventListener("change", updateDateDisplay);
 
+/* ==========================================
+   희승 포함(7인) 토글
+========================================== */
+
+if (heeseungToggle) {
+    heeseungToggle.checked = includeHeeseung;
+
+    heeseungToggle.addEventListener("change", () => {
+        includeHeeseung = heeseungToggle.checked;
+        localStorage.setItem(HEESEUNG_KEY, includeHeeseung ? "1" : "0");
+        createTable();
+        createLrGrid();
+    });
+}
+
 createTable();
 createLrGrid();
 updateNavButtons();
@@ -230,19 +260,21 @@ tabLr.addEventListener("click", () => switchTab("lr"));
 function createTable() {
     table.innerHTML = "";
 
+    const activeMembers = getActiveMembers();
+
     const head = document.createElement("tr");
     const empty = document.createElement("th");
     empty.className = "corner";
     head.appendChild(empty);
 
-    members.forEach((member, colIndex) => {
+    activeMembers.forEach(member => {
         const th = document.createElement("th");
-        th.textContent = member;
+        th.textContent = member.name;
         th.classList.add("clickable-header");
 
         th.addEventListener("click", () => {
-            currentTarget = { type: "col", index: colIndex };
-            openModal(member);
+            currentTarget = { type: "col", id: member.id };
+            openModal(member.name);
         });
 
         head.appendChild(th);
@@ -250,37 +282,38 @@ function createTable() {
 
     table.appendChild(head);
 
-    members.forEach((row, rowIndex) => {
+    activeMembers.forEach(rowMember => {
         const tr = document.createElement("tr");
 
         const rowHead = document.createElement("th");
-        rowHead.textContent = row;
+        rowHead.textContent = rowMember.name;
         rowHead.classList.add("clickable-header");
 
         rowHead.addEventListener("click", () => {
-            currentTarget = { type: "row", index: rowIndex };
-            openModal(row);
+            currentTarget = { type: "row", id: rowMember.id };
+            openModal(rowMember.name);
         });
 
         tr.appendChild(rowHead);
 
-        members.forEach((col, colIndex) => {
+        activeMembers.forEach(colMember => {
             const td = document.createElement("td");
-            td.dataset.key = `${rowIndex}-${colIndex}`;
+            const key = `${rowMember.id}-${colMember.id}`;
+            td.dataset.key = key;
 
-            td.textContent = pairNames[rowIndex][colIndex];
+            td.textContent = getPairName(rowMember.id, colMember.id);
 
-            if (rowIndex === colIndex) {
+            if (rowMember.id === colMember.id) {
                 td.classList.add("diagonal");
             }
 
-            if (saveData[td.dataset.key]) {
-                td.style.backgroundColor = saveData[td.dataset.key];
+            if (saveData[key]) {
+                td.style.backgroundColor = saveData[key];
             }
 
             td.addEventListener("click", () => {
-                currentTarget = { type: "cell", td };
-                openModal(pairNames[rowIndex][colIndex]);
+                currentTarget = { type: "cell", td, rowId: rowMember.id, colId: colMember.id };
+                openModal(getPairName(rowMember.id, colMember.id));
             });
 
             tr.appendChild(td);
@@ -403,15 +436,13 @@ function openModal(titleText) {
     }
 }
 
-function setCellColor(td, color) {
-    if (!td) return;
-
+function setCellColor(td, key, color) {
     if (color) {
-        td.style.backgroundColor = color;
-        saveData[td.dataset.key] = color;
+        if (td) td.style.backgroundColor = color;
+        saveData[key] = color;
     } else {
-        td.style.backgroundColor = "#ffffff";
-        delete saveData[td.dataset.key];
+        if (td) td.style.backgroundColor = "#ffffff";
+        delete saveData[key];
     }
 }
 
@@ -420,19 +451,24 @@ function applySelection(color) {
 
     pushHistory();
 
+    const activeMembers = getActiveMembers();
+
     if (currentTarget.type === "cell") {
-        setCellColor(currentTarget.td, color);
+        const key = `${currentTarget.rowId}-${currentTarget.colId}`;
+        setCellColor(currentTarget.td, key, color);
     } else if (currentTarget.type === "row") {
-        const rowIndex = currentTarget.index;
-        members.forEach((_, colIndex) => {
-            const td = table.querySelector(`td[data-key="${rowIndex}-${colIndex}"]`);
-            setCellColor(td, color);
+        const rowId = currentTarget.id;
+        activeMembers.forEach(colMember => {
+            const key = `${rowId}-${colMember.id}`;
+            const td = table.querySelector(`td[data-key="${key}"]`);
+            setCellColor(td, key, color);
         });
     } else if (currentTarget.type === "col") {
-        const colIndex = currentTarget.index;
-        members.forEach((_, rowIndex) => {
-            const td = table.querySelector(`td[data-key="${rowIndex}-${colIndex}"]`);
-            setCellColor(td, color);
+        const colId = currentTarget.id;
+        activeMembers.forEach(rowMember => {
+            const key = `${rowMember.id}-${colId}`;
+            const td = table.querySelector(`td[data-key="${key}"]`);
+            setCellColor(td, key, color);
         });
     }
 
@@ -478,7 +514,15 @@ function defaultAvatar(name, color) {
 function createLrGrid() {
     lrGrid.innerHTML = "";
 
-    members.forEach((member, index) => {
+    const activeMembers = getActiveMembers();
+
+    /* 왼쪽 열에 앞쪽 절반(반올림)이 채워지도록 행 개수를 정한다.
+       6인이면 3-3, 7인(희승 포함)이면 4-3으로 순서가 그대로 유지된다. */
+    lrGrid.style.setProperty("--lr-rows", Math.ceil(activeMembers.length / 2));
+
+    activeMembers.forEach(member => {
+        const index = member.id;
+
         const row = document.createElement("div");
         row.className = "lr-row";
 
@@ -488,11 +532,11 @@ function createLrGrid() {
         avatar.dataset.index = index;
 
         const img = document.createElement("img");
-        img.src = lrData.photos[index] || defaultPhotos[index];
-        img.alt = member;
+        img.src = lrData.photos[index] || member.photo;
+        img.alt = member.name;
         img.onerror = () => {
             img.onerror = null;
-            img.src = defaultAvatar(member, memberColors[index % memberColors.length]);
+            img.src = defaultAvatar(member.name, member.color);
         };
         avatar.appendChild(img);
 
