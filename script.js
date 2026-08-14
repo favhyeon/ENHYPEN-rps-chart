@@ -43,13 +43,13 @@ function getActiveMembers() {
  * (예: 제이×제이크 자리를 바꾸고 싶으면 jay 줄의 jake: "젱젴" 부분만 수정)
  */
 const PAIR_NAMES = {
-    heeseung: { heeseung: "씅씅", jay: "씅젱", jake: "씅젴", sunghoon: "씅성", sunoo: "씅선", jungwon: "씅양", niki: "씅닠" },
-    jay:      { heeseung: "젱씅", jay: "젱젱", jake: "젱젴", sunghoon: "젱성", sunoo: "젱선", jungwon: "젱양", niki: "젱닠" },
-    jake:     { heeseung: "젴씅", jay: "젴젱", jake: "젴젴", sunghoon: "젴성", sunoo: "젴선", jungwon: "젴양", niki: "젴닠" },
-    sunghoon: { heeseung: "성씅", jay: "성젱", jake: "성젴", sunghoon: "훈훈", sunoo: "훈선", jungwon: "성양", niki: "성닠" },
-    sunoo:    { heeseung: "선씅", jay: "선젱", jake: "선젴", sunghoon: "선훈", sunoo: "썬썬", jungwon: "썬양", niki: "선닠" },
-    jungwon:  { heeseung: "양씅", jay: "양젱", jake: "양젴", sunghoon: "양훈", sunoo: "양썬", jungwon: "양양", niki: "양닠" },
-    niki:     { heeseung: "닠씅", jay: "닠젱", jake: "닠젴", sunghoon: "닠성", sunoo: "닠선", jungwon: "닠양", niki: "닠닠" }
+    heeseung: { heeseung: "씅승", jay: "씅젱", jake: "씅젴", sunghoon: "씅성", sunoo: "씅선", jungwon: "씅양", niki: "씅닠" },
+    jay:      { heeseung: "젱승", jay: "젱젱", jake: "젱젴", sunghoon: "젱성", sunoo: "젱선", jungwon: "젱양", niki: "젱닠" },
+    jake:     { heeseung: "젴승", jay: "젴젱", jake: "젴젴", sunghoon: "젴성", sunoo: "젴선", jungwon: "젴양", niki: "젴닠" },
+    sunghoon: { heeseung: "훈승", jay: "성젱", jake: "성젴", sunghoon: "훈훈", sunoo: "훈선", jungwon: "성양", niki: "성닠" },
+    sunoo:    { heeseung: "썬승", jay: "선젱", jake: "선젴", sunghoon: "선훈", sunoo: "썬썬", jungwon: "썬양", niki: "선닠" },
+    jungwon:  { heeseung: "양승", jay: "양젱", jake: "양젴", sunghoon: "양훈", sunoo: "양썬", jungwon: "양양", niki: "양닠" },
+    niki:     { heeseung: "닠승", jay: "닠젱", jake: "닠젴", sunghoon: "닠성", sunoo: "닠선", jungwon: "닠양", niki: "닠닠" }
 };
 
 function getPairName(rowId, colId) {
