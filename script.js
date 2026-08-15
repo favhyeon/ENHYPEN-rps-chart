@@ -113,6 +113,7 @@ function saveHiddenState() {
 }
 
 const table = document.getElementById("chartTable");
+const tableNav = document.querySelector(".table-nav");
 const modal = document.getElementById("modal");
 const modalTitle = document.getElementById("modalTitle");
 const optionGrid = document.getElementById("optionGrid");
@@ -151,6 +152,22 @@ const scaleWrap = document.getElementById("scaleWrap");
    이 폭 이하에서는 JS로 축소하지 않고, 반응형 레이아웃을 그대로 사용한다. */
 const MOBILE_BREAKPOINT = 768;
 const DESKTOP_CAPTURE_WIDTH = 1340;
+
+/* ==========================================
+   픈페스 표 가로폭 자동 조정
+   - 희승 포함(7인)/제외(6인) 등 인원수에 따라
+     칸 하나의 가로 길이가 항상 일정하게 유지되도록
+     표 전체 가로폭을 계산한다 (예전에는 인원이 줄어도
+     표가 항상 1220px로 늘어나 칸이 옆으로 퍼져 보였음).
+   - 이미지 저장 시 좌우 여백도 표 폭에 비례해서 줄어들도록
+     원본 비율(60px 여백 / 1220px 표)을 그대로 유지한다.
+========================================== */
+const RPS_LABEL_COL_WIDTH = 130; // 맨 왼쪽 이름 칸(고정)
+const RPS_MEMBER_COL_WIDTH = 156; // 멤버 한 명당 칸 가로폭(고정) - 기존 7인 기준 폭
+const RPS_PAD_RATIO = 60 / 1220; // 기존 디자인의 표 대비 좌우 여백 비율
+const RPS_MIN_TABLE_WIDTH = 760; // 로고 등이 잘리지 않도록 하는 최소 표 폭
+
+let lastRpsColCount = 7;
 
 let currentTarget = null; // { type: "cell", td } | { type: "row", index } | { type: "col", index }
 let currentTab = "rps";
@@ -290,6 +307,50 @@ tabRps.addEventListener("click", () => switchTab("rps"));
 tabLr.addEventListener("click", () => switchTab("lr"));
 
 /* ==========================================
+   픈페스 취향표 - 표/캡처영역 가로폭 계산 및 적용
+========================================== */
+
+function applyRpsLayout(colCount, options = {}) {
+    if (typeof colCount === "number" && colCount > 0) {
+        lastRpsColCount = colCount;
+    }
+
+    if (!captureAreaRps || !table || !tableNav) return;
+
+    const forceDesktop = !!options.forceDesktop;
+    const screenWidth = Math.min(
+        window.innerWidth,
+        document.documentElement.clientWidth
+    );
+
+    if (!forceDesktop && screenWidth <= MOBILE_BREAKPOINT) {
+        /* 모바일: 인라인 값을 지워서 CSS의 반응형(%) 레이아웃이 그대로 적용되게 한다 */
+        captureAreaRps.style.width = "";
+        captureAreaRps.style.paddingLeft = "";
+        captureAreaRps.style.paddingRight = "";
+        table.style.width = "";
+        table.style.maxWidth = "";
+        tableNav.style.maxWidth = "";
+        return;
+    }
+
+    const tableWidth = Math.max(
+        RPS_LABEL_COL_WIDTH + lastRpsColCount * RPS_MEMBER_COL_WIDTH,
+        RPS_MIN_TABLE_WIDTH
+    );
+    const padX = Math.round(tableWidth * RPS_PAD_RATIO);
+    const captureWidth = tableWidth + padX * 2;
+
+    table.style.width = `${tableWidth}px`;
+    table.style.maxWidth = `${tableWidth}px`;
+    tableNav.style.maxWidth = `${tableWidth}px`;
+
+    captureAreaRps.style.width = `${captureWidth}px`;
+    captureAreaRps.style.paddingLeft = `${padX}px`;
+    captureAreaRps.style.paddingRight = `${padX}px`;
+}
+
+/* ==========================================
    픈페스 취향표 - 표 생성
 ========================================== */
 
@@ -359,6 +420,8 @@ function createTable() {
 
         table.appendChild(tr);
     });
+
+    applyRpsLayout(visibleCols.length);
 }
 
 /* ==========================================
@@ -813,6 +876,23 @@ saveBtn.addEventListener("click", async () => {
     const prevTransform = area.style.transform;
     area.style.transform = "none";
 
+    /* 모바일에서 저장할 때도 표 폭 계산이 항상 데스크톱(PC) 기준으로
+       적용되도록 강제한다 (모바일 화면에서는 applyRpsLayout이 반응형(%)
+       레이아웃을 쓰도록 인라인 값을 지워두기 때문). 저장이 끝나면 원래
+       화면 표시 상태로 되돌린다. */
+    const prevRpsInlineStyles = currentTab === "rps" ? {
+        captureWidth: captureAreaRps.style.width,
+        capturePadLeft: captureAreaRps.style.paddingLeft,
+        capturePadRight: captureAreaRps.style.paddingRight,
+        tableWidth: table.style.width,
+        tableMaxWidth: table.style.maxWidth,
+        navMaxWidth: tableNav.style.maxWidth
+    } : null;
+
+    if (currentTab === "rps") {
+        applyRpsLayout(undefined, { forceDesktop: true });
+    }
+
     const textareaReplacements = prepareTextareasForCapture(area);
 
     try {
@@ -862,6 +942,16 @@ saveBtn.addEventListener("click", async () => {
         restoreTextareasAfterCapture(textareaReplacements);
         area.classList.remove("capturing");
         area.style.transform = prevTransform;
+
+        if (prevRpsInlineStyles) {
+            captureAreaRps.style.width = prevRpsInlineStyles.captureWidth;
+            captureAreaRps.style.paddingLeft = prevRpsInlineStyles.capturePadLeft;
+            captureAreaRps.style.paddingRight = prevRpsInlineStyles.capturePadRight;
+            table.style.width = prevRpsInlineStyles.tableWidth;
+            table.style.maxWidth = prevRpsInlineStyles.tableMaxWidth;
+            tableNav.style.maxWidth = prevRpsInlineStyles.navMaxWidth;
+        }
+
         buttonWrap.style.display = "flex";
         tabWrap.style.display = "flex";
         dateToggleWrap.style.display = "flex";
@@ -893,6 +983,10 @@ function fitCaptureArea() {
 
     if (!area || !wrap) return;
 
+    /* 픈페스 표는 인원수에 따라 실제 가로폭이 달라지므로,
+       화면 폭이 바뀔 때마다(모바일 <-> 데스크톱) 표/캡처영역 폭을 다시 계산한다. */
+    applyRpsLayout();
+
     const screenWidth = Math.min(
         window.innerWidth,
         document.documentElement.clientWidth
@@ -908,12 +1002,16 @@ function fitCaptureArea() {
         return;
     }
 
-    const scale = Math.min(1, screenWidth / DESKTOP_CAPTURE_WIDTH);
+    /* area.offsetWidth는 transform의 영향을 받지 않는 실제(축소 전) 레이아웃
+       폭이므로, 인원수에 따라 캡처영역 폭이 좁아진 경우에도 화면에 꽉 맞게
+       정확한 배율로 축소할 수 있다. */
+    const naturalWidth = area.offsetWidth || DESKTOP_CAPTURE_WIDTH;
+    const scale = Math.min(1, screenWidth / naturalWidth);
 
     area.style.transformOrigin = "top left";
     area.style.transform = `scale(${scale})`;
 
-    wrap.style.width = `${DESKTOP_CAPTURE_WIDTH * scale}px`;
+    wrap.style.width = `${naturalWidth * scale}px`;
     wrap.style.height = `${area.scrollHeight * scale}px`;
 }
 
